@@ -1,0 +1,46 @@
+{
+  "_doc": "Single source of truth for chart palette + defaults. Mirrors the Agency Analytics PDF references. Read by assets/cyntora-charts.js at runtime.",
+  "palette": {
+    "current": "#1f4e4a",
+    "previous": "#b9d2cf",
+    "orange":   "#f7a528"
+  },
+  "donut_palette": [
+    "#4285F4", "#34A853", "#FBBC04", "#EA4335",
+    "#AB47BC", "#00ACC1", "#FF7043", "#9E9E9E",
+    "#7E57C2", "#26A69A"
+  ],
+  "trend": {
+    "up_text":   "#2e8b3a",
+    "up_bg":     "#e6f4e8",
+    "down_text": "#c43b3b",
+    "down_bg":   "#fbe5e5"
+  },
+  "font": {
+    "family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "size_axis":   11,
+    "size_legend": 12,
+    "size_label":  10,
+    "color_axis":   "#7a7a7a",
+    "color_legend": "#2c2c2c"
+  },
+  "grid": {
+    "color":      "#eeeeee",
+    "tick_color": "#bdbdbd"
+  },
+  "line": {
+    "tension": 0.35,
+    "border_width": 2,
+    "point_radius": 0,
+    "point_hover_radius": 4
+  },
+  "bar": {
+    "border_radius": 2,
+    "max_bar_thickness": 18
+  },
+  "donut": {
+    "cutout": "70%",
+    "border_color": "#ffffff",
+    "border_width": 2
+  }
+}

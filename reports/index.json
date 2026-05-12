@@ -1,0 +1,11 @@
+{
+  "client_id": "brasvarmeinterior",
+  "client_display_name": "Brasvärmeinteriör",
+  "reports": [
+    {
+      "file": "2026-04.html",
+      "month": "2026-04",
+      "label": "April 2026"
+    }
+  ]
+}

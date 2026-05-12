@@ -1,0 +1,901 @@
+/* Cyntora Reports - master stylesheet
+ *
+ * Design mirrors the Agency Analytics PDF reports:
+ * /Users/piran/Desktop/Agency Analytics Material/Agency Analytics Reports/
+ *
+ * Any change here must be visually compared against those PDFs.
+ */
+
+:root {
+  --c-bg: #ffffff;
+  --c-page-bg: #fafafa;
+  --c-text: #2c2c2c;
+  --c-text-muted: #6b6b6b;
+  --c-text-faint: #9a9a9a;
+
+  --c-band: #2e2e2e;
+  --c-band-text: #ffffff;
+
+  --c-card-bg: #ffffff;
+  --c-card-border: #e8e8e8;
+  --c-card-divider: #f0f0f0;
+
+  --c-up-text: #2e8b3a;
+  --c-up-bg: #e6f4e8;
+  --c-down-text: #c43b3b;
+  --c-down-bg: #fbe5e5;
+
+  --c-callout-bg: #fff8e6;
+  --c-callout-border: #f1d68f;
+  --c-callout-text: #6b5106;
+
+  --c-takeaway-bg: #f4f7fa;
+  --c-takeaway-border: #d8e2ec;
+  --c-takeaway-text: #2c3e50;
+
+  --c-chart-current: #1f4e4a;
+  --c-chart-previous: #b9d2cf;
+  --c-chart-orange: #f7a528;
+
+  /* GA4-style donut palette - matches the reference reports */
+  --c-pal-1: #4285F4;
+  --c-pal-2: #34A853;
+  --c-pal-3: #FBBC04;
+  --c-pal-4: #EA4335;
+  --c-pal-5: #AB47BC;
+  --c-pal-6: #00ACC1;
+  --c-pal-7: #FF7043;
+  --c-pal-8: #9E9E9E;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --pad-page: 32px;
+  --pad-card: 16px 18px;
+  --radius-card: 4px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  color: var(--c-text);
+  background: var(--c-page-bg);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Defensive: never allow the page itself to scroll horizontally. Every
+     wide element (tables, charts) must scroll inside its own container.
+     Use `clip` instead of `hidden` so position:sticky on `.report-nav`
+     keeps working (overflow:hidden on html/body creates a scroll-container
+     in WebKit which silently breaks any sticky descendant). */
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Long strings (URL paths, campaign names with hyphens) shouldn't push
+   their parent past the viewport edge. The donut-row legend is excluded
+   on purpose — it's a 1-fr column inside a constrained card and would
+   otherwise wrap city names like "Stockholm" character-by-character. */
+.data-table td,
+.summary-block p,
+.next-steps li,
+.takeaway,
+.card__note,
+.cover h1,
+.cover .intro,
+.section-title,
+.page-header .meta {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.donut-row .legend .name {
+  /* Allow word boundaries to wrap, but not mid-word. */
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+
+/* `<a>` tags inside copy must wrap - common offender on mobile. */
+a { overflow-wrap: anywhere; word-break: break-word; }
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  background: var(--c-bg);
+  padding: var(--pad-page);
+  border-bottom: 1px solid var(--c-card-divider);
+}
+
+/* ---------- Sticky report nav --------------------------------------------- */
+
+.report-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--c-card-border);
+  font-size: 13px;
+}
+.report-nav__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 10px var(--pad-page);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.report-nav__group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.report-nav label { color: var(--c-text-muted); font-size: 12px; }
+.report-nav select {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 5px 28px 5px 10px;
+  border: 1px solid var(--c-card-border);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  min-width: 200px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='%23666' d='M4 6l4 4 4-4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+}
+.report-nav select:hover { border-color: #b8b8b8; }
+.report-nav select:focus { outline: 2px solid #d8e2ec; outline-offset: -1px; }
+
+/* legacy class kept for backward-compat */
+.period-switcher {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--c-card-border);
+  padding: 10px var(--pad-page); display: flex; align-items: center; gap: 12px; font-size: 13px;
+}
+
+/* ---------- Cover page ----------------------------------------------------- */
+
+.cover {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 18vh;
+  text-align: center;
+}
+.cover .logo { width: 220px; height: auto; }
+.cover h1 {
+  margin: 56px 0 6px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+.cover .month {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0;
+}
+.cover .intro {
+  margin: 32px auto 0;
+  max-width: 720px;
+  border: 1px solid var(--c-card-border);
+  border-radius: var(--radius-card);
+  padding: 20px 24px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--c-text-muted);
+  text-align: left;
+}
+.cover .footer {
+  margin-top: auto;
+  padding-top: 80px;
+  font-size: 14px;
+  color: var(--c-text-faint);
+}
+.cover .footer .property { margin-bottom: 4px; }
+.cover .footer .url { font-size: 14px; }
+.cover .footer .fx-note { font-size: 11px; color: var(--c-text-muted); margin-top: 16px; font-style: italic; }
+
+/* ---------- Page header (recurs on every page after the cover) ------------ */
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.page-header .logo { height: 28px; }
+.page-header .meta {
+  text-align: right;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  line-height: 1.55;
+}
+.page-header .meta .client { color: var(--c-text); }
+
+/* ---------- Section title (centered, recurring) --------------------------- */
+
+.section-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 28px 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  scroll-margin-top: 80px;
+}
+.section-title__icon {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.section { scroll-margin-top: 70px; }
+
+/* ---------- Section band -------------------------------------------------- */
+
+.band {
+  background: var(--c-band);
+  color: var(--c-band-text);
+  padding: 10px 18px;
+  font-size: 16px;
+  margin: 18px 0 14px;
+}
+
+/* ---------- KPI card ------------------------------------------------------ */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.card-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.card-grid--asym {
+  grid-template-columns: 140px 1fr 1fr;
+}
+
+.card {
+  background: var(--c-card-bg);
+  border: 1px solid var(--c-card-border);
+  border-radius: var(--radius-card);
+  padding: var(--pad-card);
+  display: flex;
+  flex-direction: column;
+  min-height: 110px;
+}
+.card--icon {
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+}
+.card--icon img,
+.card--icon svg { width: 64px; height: 64px; }
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  margin-bottom: 10px;
+}
+.card__head .label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card__head .label svg,
+.card__head .label img { width: 14px; height: 14px; }
+.card__head .sub { font-size: 11px; color: var(--c-text-faint); }
+
+.card__value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  margin: 18px 0 6px;
+}
+.card__value--big { font-size: 36px; }
+
+.card__chart-inline {
+  flex: 1;
+  min-height: 80px;
+}
+
+.card--note {
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.card__note {
+  font-size: 12px;
+  color: var(--c-text-muted);
+  text-align: center;
+  line-height: 1.45;
+  margin-top: 6px;
+}
+
+.trend {
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.trend--up   { color: var(--c-up-text);   background: var(--c-up-bg); }
+.trend--down { color: var(--c-down-text); background: var(--c-down-bg); }
+.trend::before {
+  font-size: 9px;
+  line-height: 1;
+}
+.trend--up::before   { content: "▲"; }
+.trend--down::before { content: "▼"; }
+
+/* ---------- Big chart card ----------------------------------------------- */
+
+.chart-card {
+  background: var(--c-card-bg);
+  border: 1px solid var(--c-card-border);
+  border-radius: var(--radius-card);
+  padding: 14px 16px 18px;
+  margin-bottom: 12px;
+}
+.chart-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  margin-bottom: 8px;
+}
+.chart-card__head .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.chart-card__head .right .value {
+  color: var(--c-text);
+  font-weight: 600;
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+.chart-wrap--tall  { height: 320px; }
+.chart-wrap--short { height: 180px; }
+
+/* ---------- Donut + side-legend layout ----------------------------------- */
+
+.donut-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: center;
+}
+.donut-row .legend {
+  font-size: 12px;
+}
+.donut-row .legend .row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+.donut-row .legend .swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.donut-row .legend .name { color: var(--c-text); }
+.donut-row .legend .value {
+  color: var(--c-text);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* When 3 donuts share a row (Detaljerad statistik), each card is too
+   narrow for the donut + legend side-by-side. Stack chart over legend so
+   long city names render readably. */
+.card-grid--3 .donut-row {
+  grid-template-columns: 1fr;
+  gap: 12px;
+  text-align: center;
+}
+.card-grid--3 .donut-row .legend { text-align: left; }
+
+/* ---------- Data table --------------------------------------------------- */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.data-table thead th {
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10.5px;
+  color: var(--c-text-muted);
+  font-weight: 600;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--c-card-border);
+  background: #fff;
+}
+.data-table thead th:first-child { text-align: left; }
+.data-table tbody td {
+  padding: 10px;
+  text-align: right;
+  vertical-align: top;
+  border-bottom: 1px solid var(--c-card-divider);
+}
+.data-table tbody td:first-child {
+  text-align: left;
+  color: var(--c-text);
+}
+.data-table .delta { display: block; margin-top: 2px; }
+
+.data-table-wrap {
+  background: var(--c-card-bg);
+  border: 1px solid var(--c-card-border);
+  border-radius: var(--radius-card);
+  padding: 4px 6px;
+  margin-bottom: 12px;
+}
+.data-table-wrap .head {
+  padding: 10px 10px 4px;
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+/* ---------- Source attribution caption ---------------------------------- */
+
+.source-attr {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  text-align: right;
+  padding: 4px 2px 12px;
+  font-style: italic;
+}
+
+/* ---------- Insight callout (per-section takeaway) ----------------------- */
+
+.takeaway {
+  background: var(--c-takeaway-bg);
+  border-left: 3px solid var(--c-takeaway-border);
+  color: var(--c-takeaway-text);
+  font-size: 12.5px;
+  padding: 10px 14px;
+  border-radius: 0 3px 3px 0;
+  margin: 8px 0 16px;
+}
+
+/* Small explanatory note (e.g. why YoY is suppressed for new properties).
+   Less prominent than a takeaway — italic caption right below a table. */
+.caption-note {
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--c-text-muted);
+  margin: 8px 4px 14px;
+  line-height: 1.45;
+}
+
+/* ---------- Data unavailable callout ------------------------------------- */
+
+.unavailable {
+  background: var(--c-callout-bg);
+  border: 1px solid var(--c-callout-border);
+  color: var(--c-callout-text);
+  font-size: 11px;
+  padding: 10px 12px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+.unavailable::before {
+  content: "⚠";
+  font-size: 13px;
+}
+.card .unavailable {
+  margin: 18px auto;
+  align-self: center;
+}
+
+/* ---------- Multi-market SEM samlad (Ankarsrum) -------------------------
+   Per the Agency Analytics reference (`Ankarsrum - Samlad rapport för
+   alla SEM-konton`): each page shows one data source × 3 markets in 3
+   columns. Each column has a black band, a brand logo, then a vertical
+   stack of KPI cards. -------------------------------------------------- */
+
+.sem-page-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 18px 0 22px;
+}
+
+.sem-cols {
+  display: grid;
+  gap: 12px;
+}
+
+.sem-cols--1 { grid-template-columns: minmax(0, 1fr); }
+.sem-cols--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sem-cols--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.sem-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sem-col__band {
+  background: var(--c-band);
+  color: var(--c-band-text);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 3px;
+}
+
+.sem-col__logo {
+  background: var(--c-card-bg);
+  border: 1px solid var(--c-card-border);
+  border-radius: 4px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sem-col__logo img {
+  max-width: 60%;
+  max-height: 60px;
+  object-fit: contain;
+}
+
+.sem-col__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* The KPI cards inside a SEM column use the standard `.card` markup but
+   need a tighter stack (no margins) and a card-aligned big value. */
+.sem-col__cards .card { margin: 0; }
+.sem-col__cards .card__head { margin-bottom: 4px; }
+.sem-col__cards .card__value { text-align: center; }
+.sem-col__cards .card__value--big { font-size: 28px; line-height: 1.1; }
+
+.sem-col__unavailable {
+  background: var(--c-callout-bg);
+  border: 1px solid var(--c-callout-border);
+  color: var(--c-callout-text);
+  font-size: 12px;
+  padding: 18px 12px;
+  border-radius: 3px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.cover .summary-heading {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin: 24px 0 -8px;
+}
+
+/* ---------- "Sammanfattning av månaden" block (top of report) ----------- */
+
+.summary-block {
+  background: var(--c-card-bg);
+  border: 1px solid var(--c-card-border);
+  border-radius: var(--radius-card);
+  padding: 22px 26px;
+  margin: 0 0 24px;
+}
+.summary-block h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  color: var(--c-text);
+  font-weight: 700;
+}
+.summary-block p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--c-text);
+}
+
+/* ---------- "Vad vi gör härnäst" block (bottom of report) --------------- */
+
+.next-steps {
+  background: var(--c-card-bg);
+  border: 1px solid var(--c-card-border);
+  border-radius: var(--radius-card);
+  padding: 22px 26px;
+  margin: 24px 0 0;
+}
+.next-steps h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+.next-steps ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.next-steps li { margin-bottom: 6px; }
+
+.next-steps__uppsell {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  background: var(--c-takeaway-bg);
+  border-left: 3px solid var(--c-takeaway-border);
+  color: var(--c-takeaway-text);
+  font-size: 13px;
+  font-style: italic;
+  border-radius: 0 3px 3px 0;
+}
+
+.next-steps--external {
+  margin-top: 14px;
+  background: #fcf6ec;
+  border-color: var(--c-callout-border);
+}
+.next-steps--external h2 { color: var(--c-callout-text); }
+
+/* ---------- Multi-market 3-column layout ------------------------------- */
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.market-col { display: flex; flex-direction: column; gap: 8px; }
+.market-col .band { margin: 0 0 6px; padding: 8px 12px; font-size: 13px; }
+
+/* ---------- Multi-property per-property block -------------------------- */
+
+.property-block { margin-bottom: 32px; }
+.property-block .property-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 8px 0 16px;
+}
+
+/* ---------- Responsive (mobile / tablet) -------------------------------
+   Breakpoints chosen to match real device classes:
+     ≥ 1200  desktop / large laptop      (no overrides needed)
+     1024    laptop / iPad landscape    (slight tightening)
+      900    small laptop / iPad split   (3-col → 2-col)
+      720    iPad portrait, large phone  (sticky nav rows still inline)
+      560    phone landscape / large    (full single-column)
+      400    standard phones             (compact)
+      340    iPhone SE 1, narrow Galaxy  (tighter type)
+*/
+
+/* Laptop / iPad landscape */
+@media (max-width: 1024px) {
+  :root { --pad-page: 24px; }
+  .market-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* iPad portrait + small laptops: drop 3-col grids to 2-col and tighten the
+   asymmetric icon-strip layout. */
+@media (max-width: 900px) {
+  .card-grid--3 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid--asym { grid-template-columns: 1fr 1fr; }
+  .card-grid--asym .card--icon { display: none; }
+  .donut-row { grid-template-columns: 180px 1fr; gap: 16px; }
+  .chart-wrap { height: 220px; }
+  .chart-wrap--tall { height: 280px; }
+  /* SEM samlad 3-col → 2-col so each market column stays readable. The
+     odd 3rd market on a row wraps below as a half-width card. */
+  .sem-cols--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sem-page-title { font-size: 19px; margin: 14px 0 18px; }
+}
+
+/* Large phones / phone landscape: keep the sticky nav inline but tighten
+   spacing, single-column the multi-market grid, and let donuts stack. */
+@media (max-width: 720px) {
+  :root { --pad-page: 18px; }
+  .market-grid { grid-template-columns: 1fr; }
+  .donut-row { grid-template-columns: 1fr; gap: 14px; text-align: center; }
+  .donut-row .legend { text-align: left; }
+  .data-table { font-size: 11.5px; }
+  /* SEM samlad → single column. Each market becomes its own full-width
+     stack with band + logo + KPI cards. */
+  .sem-cols,
+  .sem-cols--1,
+  .sem-cols--2,
+  .sem-cols--3 { grid-template-columns: minmax(0, 1fr); }
+  .sem-col__logo { height: 72px; }
+  .sem-col__logo img { max-height: 48px; }
+  .sem-page-title { font-size: 18px; }
+}
+
+/* Phones (≤ iPhone Pro Max width). Stack everything to a single column,
+   keep the sticky nav as a dropdown (do NOT switch to a hamburger), and
+   shrink fonts/spacing so the report stays readable without zooming.
+   Tables overflow horizontally rather than squishing columns. */
+@media (max-width: 560px) {
+  :root {
+    --pad-page: 16px;
+    --pad-card: 14px 14px;
+  }
+  html, body { font-size: 13px; }
+  .page { padding: 16px 14px; }
+
+  /* Cover page: tighten so the property card and FX-note fit one screen. */
+  .cover { min-height: auto; padding-top: 8vh; padding-bottom: 24px; }
+  .cover .logo { width: 160px; }
+  .cover h1 { margin: 32px 0 4px; font-size: 22px; }
+  .cover .month { font-size: 15px; }
+  .cover .intro { padding: 14px 16px; margin-top: 20px; font-size: 12.5px; }
+  .cover .footer { padding-top: 32px; }
+
+  /* Recurring page header: stack so the meta block doesn't push the logo
+     out of frame on narrow screens. */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .page-header .meta { text-align: left; font-size: 11px; }
+
+  /* Section title scales down so it doesn't dominate the screen. */
+  .section-title { font-size: 18px; margin: 20px 0 14px; gap: 8px; }
+  .section-title__icon { width: 22px; height: 22px; }
+
+  /* All grids collapse to one column. */
+  .card-grid,
+  .card-grid--3,
+  .card-grid--asym,
+  .market-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .card { min-height: auto; }
+  .card--icon { display: none; }
+  .card__value { font-size: 24px; margin: 12px 0 4px; }
+  .card__value--big { font-size: 28px; }
+
+  /* Donuts: stack chart over legend, no more side-by-side. */
+  .donut-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    text-align: center;
+  }
+  .donut-row .legend { text-align: left; }
+
+  /* Chart cards: shorter on mobile so multiple sections still fit a swipe. */
+  .chart-card { padding: 12px 12px 14px; }
+  .chart-wrap { height: 200px; }
+  .chart-wrap--tall  { height: 240px; }
+  .chart-wrap--short { height: 160px; }
+
+  /* Sticky nav: stack groups vertically, dropdowns full width. */
+  .report-nav__inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .report-nav__group { width: 100%; }
+  .report-nav select { width: 100%; min-width: 0; }
+
+  /* Tables: horizontal scroll instead of squashing columns. */
+  .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table { min-width: 520px; font-size: 11.5px; }
+  .data-table thead th,
+  .data-table tbody td { padding: 8px 8px; }
+
+  /* Section bands a touch smaller. */
+  .band { font-size: 13px; padding: 8px 12px; margin: 14px 0 10px; }
+
+  /* Summary + next-steps blocks: less padding, tighter type. */
+  .summary-block, .next-steps {
+    padding: 16px 18px;
+    margin: 0 0 18px;
+  }
+  .summary-block h2, .next-steps h2 { font-size: 15px; }
+  .summary-block p, .next-steps ul { font-size: 13px; line-height: 1.55; }
+
+  /* Insight takeaway under each section. */
+  .takeaway { font-size: 12px; padding: 9px 12px; }
+
+  /* Multi-market columns: when stacked, give each its own band so the
+     reader knows which market they're looking at. */
+  .market-col .band { font-size: 12.5px; padding: 7px 10px; }
+  .property-block .property-title { font-size: 16px; }
+
+  /* SEM samlad: tighter band + logo on phones (already single-column
+     from the 720px rule). KPI cards keep big values for thumb-readability. */
+  .sem-page-title { font-size: 17px; margin: 14px 0 16px; }
+  .sem-col__band { font-size: 12.5px; padding: 7px 10px; }
+  .sem-col__logo { height: 64px; }
+  .sem-col__logo img { max-height: 42px; max-width: 70%; }
+  .sem-col__cards .card__value--big { font-size: 24px; }
+  .sem-col__cards .card__head .label { font-size: 11.5px; }
+
+  /* Trend pills: compact. */
+  .trend { font-size: 10px; padding: 1px 5px; }
+}
+
+/* Standard phones (iPhone SE 2/3, iPhone Pro). Compact type but still
+   comfortable. */
+@media (max-width: 400px) {
+  html, body { font-size: 13px; }
+  .page { padding: 14px 12px; }
+  .section-title { font-size: 17px; }
+  .card__value { font-size: 22px; }
+  .card__value--big { font-size: 26px; }
+  .chart-wrap { height: 190px; }
+  .chart-wrap--tall  { height: 230px; }
+  .chart-wrap--short { height: 150px; }
+}
+
+/* Extra-small phones (iPhone SE 1, narrow Android). Tighter type; no
+   page overflow — only tables scroll. */
+@media (max-width: 340px) {
+  html, body { font-size: 12.5px; }
+  .page { padding: 12px 10px; }
+  .section-title { font-size: 15px; }
+  .card__value { font-size: 20px; }
+  .card__value--big { font-size: 24px; }
+  .chart-wrap { height: 170px; }
+  .chart-wrap--tall  { height: 210px; }
+  .chart-wrap--short { height: 130px; }
+  .band { font-size: 12.5px; }
+  .data-table { min-width: 460px; }
+}
+
+/* ---------- Print ------------------------------------------------------- */
+
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  html, body { background: #fff; }
+  .period-switcher { display: none; }
+  .page {
+    box-shadow: none;
+    border-bottom: none;
+    page-break-after: always;
+    padding: 0;
+  }
+  .chart-wrap, .chart-wrap--tall, .chart-wrap--short { break-inside: avoid; }
+  .card, .chart-card, .data-table-wrap, .summary-block, .next-steps {
+    break-inside: avoid;
+  }
+}
