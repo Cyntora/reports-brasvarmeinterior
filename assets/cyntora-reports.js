@@ -53,10 +53,12 @@
   // ----- 2. Section nav with scroll-spy --------------------------------- //
 
   function initSectionNav() {
-    // v1 (paginated layout) uses a <select data-section-jump> dropdown.
-    // v2 uses an inline <div data-section-links> with anchor links; both
-    // discover sections the same way and share scroll-spy logic.
+    // v1 uses a dropdown only. v2 has BOTH an inline link bar AND a
+    // hidden dropdown that swaps in when the link bar can't fit all
+    // section names side-by-side (multi-property reports often have 18+
+    // sections; long single names also push overflow).
     var dropdown = document.querySelector('[data-section-jump]');
+    var dropdownWrap = document.querySelector('[data-section-dropdown-wrap]');
     var linkbar = document.querySelector('[data-section-links]');
     if (!dropdown && !linkbar) return;
 
@@ -69,7 +71,6 @@
     }
 
     if (dropdown) {
-      // v1: populate the dropdown
       dropdown.innerHTML = '';
       var topOpt = document.createElement('option');
       topOpt.value = '__top';
@@ -92,7 +93,6 @@
 
     var links = [];
     if (linkbar) {
-      // v2: populate the inline link bar
       linkbar.innerHTML = '';
       sections.forEach(function (s) {
         var a = document.createElement('a');
@@ -106,6 +106,25 @@
         linkbar.appendChild(a);
         links.push(a);
       });
+    }
+
+    // Toggle link-bar vs dropdown based on whether the link bar
+    // overflows. Run on load and on every resize.
+    function syncNavMode() {
+      if (!linkbar || !dropdownWrap) return;
+      // Force the link bar visible to measure naturally
+      linkbar.classList.remove('report-nav__links--collapsed');
+      dropdownWrap.classList.remove('is-active');
+      // Use scrollWidth vs clientWidth to detect overflow
+      var overflows = linkbar.scrollWidth > linkbar.clientWidth + 2;
+      if (overflows) {
+        linkbar.classList.add('report-nav__links--collapsed');
+        dropdownWrap.classList.add('is-active');
+      }
+    }
+    if (linkbar && dropdownWrap) {
+      syncNavMode();
+      window.addEventListener('resize', syncNavMode);
     }
 
     // Scroll-spy: pick the section whose top is closest to (but at or
