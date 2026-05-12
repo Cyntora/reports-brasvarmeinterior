@@ -53,115 +53,65 @@
   // ----- 2. Section nav with scroll-spy --------------------------------- //
 
   function initSectionNav() {
-    // v1 uses a dropdown only. v2 has BOTH an inline link bar AND a
-    // hidden dropdown that swaps in when the link bar can't fit all
-    // section names side-by-side (multi-property reports often have 18+
-    // sections; long single names also push overflow).
-    var dropdown = document.querySelector('[data-section-jump]');
-    var dropdownWrap = document.querySelector('[data-section-dropdown-wrap]');
-    var linkbar = document.querySelector('[data-section-links]');
-    if (!dropdown && !linkbar) return;
+    var sel = document.querySelector('[data-section-jump]');
+    if (!sel) return;
 
     var sections = Array.prototype.slice.call(
       document.querySelectorAll('[data-section-id]')
     );
     if (!sections.length) {
-      if (dropdown) dropdown.disabled = true;
+      sel.disabled = true;
       return;
     }
 
-    if (dropdown) {
-      dropdown.innerHTML = '';
-      var topOpt = document.createElement('option');
-      topOpt.value = '__top';
-      topOpt.textContent = 'Översikt';
-      dropdown.appendChild(topOpt);
-      sections.forEach(function (s) {
-        var opt = document.createElement('option');
-        opt.value = s.id || ('section-' + s.getAttribute('data-section-id'));
-        opt.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
-        dropdown.appendChild(opt);
-      });
-      dropdown.addEventListener('change', function () {
-        var v = dropdown.value;
-        if (!v) return;
-        if (v === '__top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-        var target = document.getElementById(v);
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    }
+    // Populate dropdown in document order
+    sel.innerHTML = '';
+    var topOpt = document.createElement('option');
+    topOpt.value = '__top';
+    topOpt.textContent = 'Översikt';
+    sel.appendChild(topOpt);
+    sections.forEach(function (s) {
+      var opt = document.createElement('option');
+      opt.value = s.id || ('section-' + s.getAttribute('data-section-id'));
+      opt.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
+      sel.appendChild(opt);
+    });
 
-    var links = [];
-    if (linkbar) {
-      linkbar.innerHTML = '';
-      sections.forEach(function (s) {
-        var a = document.createElement('a');
-        a.href = '#' + s.id;
-        a.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
-        a.addEventListener('click', function (e) {
-          e.preventDefault();
-          var target = document.getElementById(s.id);
-          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-        linkbar.appendChild(a);
-        links.push(a);
-      });
-    }
-
-    // Toggle link-bar vs dropdown based on whether the link bar
-    // overflows. Run on load and on every resize.
-    function syncNavMode() {
-      if (!linkbar || !dropdownWrap) return;
-      // Force the link bar visible to measure naturally
-      linkbar.classList.remove('report-nav__links--collapsed');
-      dropdownWrap.classList.remove('is-active');
-      // Use scrollWidth vs clientWidth to detect overflow
-      var overflows = linkbar.scrollWidth > linkbar.clientWidth + 2;
-      if (overflows) {
-        linkbar.classList.add('report-nav__links--collapsed');
-        dropdownWrap.classList.add('is-active');
+    // Click -> scroll to section
+    sel.addEventListener('change', function () {
+      var v = sel.value;
+      if (!v) return;
+      if (v === '__top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
       }
-    }
-    if (linkbar && dropdownWrap) {
-      syncNavMode();
-      window.addEventListener('resize', syncNavMode);
-    }
+      var target = document.getElementById(v);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
 
     // Scroll-spy: pick the section whose top is closest to (but at or
-    // above) the sticky-nav bottom. Updates both dropdown.value and
-    // link.is-active class so either UI reflects current position.
+    // above) the sticky-nav bottom.
     var navHeight = (document.querySelector('.report-nav') || {}).offsetHeight || 56;
     var ticking = false;
 
     function updateActive() {
       ticking = false;
       var threshold = navHeight + 24;
-      var activeIdx = -1;
+      var active = null;
       for (var i = 0; i < sections.length; i++) {
         var rect = sections[i].getBoundingClientRect();
         if (rect.top - threshold <= 0) {
-          activeIdx = i;
+          active = sections[i];
         } else {
           break;
         }
       }
-      // When user has scrolled to (within 4px of) the bottom of the page,
-      // force-activate the LAST section. Otherwise short final sections
-      // (like "Vad vi gör härnäst") never trip the threshold and the
-      // active link stays on the previous section even when the user is
-      // clearly reading the last one.
-      var atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
-      if (atBottom && sections.length) {
-        activeIdx = sections.length - 1;
-      }
-      if (activeIdx >= 0) {
-        if (dropdown) dropdown.value = sections[activeIdx].id;
-        if (linkbar) {
-          links.forEach(function (a, i) { a.classList.toggle('is-active', i === activeIdx); });
-        }
+      if (active) {
+        sel.value = active.id;
       } else if (window.scrollY < 50) {
-        if (dropdown) dropdown.value = '__top';
-        if (linkbar) links.forEach(function (a) { a.classList.remove('is-active'); });
+        sel.value = '__top';
       }
     }
 
