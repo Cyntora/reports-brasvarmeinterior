@@ -571,10 +571,11 @@ h4 { font-family: var(--font-ui); font-size: 16px; line-height: 23px; font-weigh
 .card__value { font-family: var(--font-display); font-size: 28px; font-weight: 500; color: var(--charcoal); }
 .card__value--big { font-size: 32px; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s-4); margin-bottom: var(--s-4); }
-.card-grid--asym { grid-template-columns: auto 1fr 1fr; }
+.card-grid--asym { grid-template-columns: 1fr 1fr; }
 @media (max-width: 700px) { .card-grid--asym { grid-template-columns: 1fr; } }
-.card--icon { background: var(--warm-taupe); padding: var(--s-5); display: flex; align-items: center; justify-content: center; min-width: 100px; }
-.card--icon img { height: 32px; filter: invert(1) brightness(2); }
+/* v2: drop the warm-taupe icon block entirely. The brand icon is already
+   in the section title — repeating it as a coloured tile felt heavy. */
+.card--icon { display: none; }
 
 /* Status badges */
 .trend { font-family: var(--font-ui); font-size: 13px; font-weight: 500; }

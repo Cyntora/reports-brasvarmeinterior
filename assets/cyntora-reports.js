@@ -126,6 +126,15 @@
           break;
         }
       }
+      // When user has scrolled to (within 4px of) the bottom of the page,
+      // force-activate the LAST section. Otherwise short final sections
+      // (like "Vad vi gör härnäst") never trip the threshold and the
+      // active link stays on the previous section even when the user is
+      // clearly reading the last one.
+      var atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
+      if (atBottom && sections.length) {
+        activeIdx = sections.length - 1;
+      }
       if (activeIdx >= 0) {
         if (dropdown) dropdown.value = sections[activeIdx].id;
         if (linkbar) {
