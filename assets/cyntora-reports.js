@@ -77,7 +77,10 @@
       sel.appendChild(opt);
     });
 
-    // Click -> scroll to section
+    // Click -> scroll to section, and pin the active state to the
+    // chosen section while smooth-scroll runs so the dropdown matches
+    // user intent even when the page can't scroll the section all the
+    // way to threshold (near-bottom sections).
     sel.addEventListener('change', function () {
       var v = sel.value;
       if (!v) return;
@@ -87,17 +90,35 @@
       }
       var target = document.getElementById(v);
       if (target) {
+        clickPin = v;
+        if (clickPinTimer) clearTimeout(clickPinTimer);
+        clickPinTimer = setTimeout(function () { clickPin = null; }, 1000);
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
 
     // Scroll-spy: pick the section whose top is closest to (but at or
-    // above) the sticky-nav bottom.
+    // above) the sticky-nav bottom. Two edge cases the simple algorithm
+    // gets wrong:
+    //   1. Bottom of page: the LAST sections can't scroll their top to
+    //      the threshold because there's no content below them, so the
+    //      simple "most-recently-above" picks an earlier section. Detect
+    //      "at bottom" (within 4px of scrollHeight) and force the last.
+    //   2. Click-to-scroll on a near-bottom section: same issue — the
+    //      page scrolls as far as it can, but the section's top sits
+    //      well below threshold. The click handler now sets the active
+    //      state immediately to the clicked section so the dropdown
+    //      doesn't lag behind user intent during the smooth-scroll.
     var navHeight = (document.querySelector('.report-nav') || {}).offsetHeight || 56;
     var ticking = false;
+    var clickPin = null;
+    var clickPinTimer = null;
 
     function updateActive() {
       ticking = false;
+      // If the user just clicked a section link, honour that for ~1s
+      // while the smooth-scroll animation runs.
+      if (clickPin) { sel.value = clickPin; return; }
       var threshold = navHeight + 24;
       var active = null;
       for (var i = 0; i < sections.length; i++) {
@@ -107,6 +128,10 @@
         } else {
           break;
         }
+      }
+      var atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
+      if (atBottom && sections.length) {
+        active = sections[sections.length - 1];
       }
       if (active) {
         sel.value = active.id;
