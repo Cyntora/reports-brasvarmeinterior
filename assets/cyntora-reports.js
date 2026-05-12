@@ -53,65 +53,87 @@
   // ----- 2. Section nav with scroll-spy --------------------------------- //
 
   function initSectionNav() {
-    var sel = document.querySelector('[data-section-jump]');
-    if (!sel) return;
+    // v1 (paginated layout) uses a <select data-section-jump> dropdown.
+    // v2 uses an inline <div data-section-links> with anchor links; both
+    // discover sections the same way and share scroll-spy logic.
+    var dropdown = document.querySelector('[data-section-jump]');
+    var linkbar = document.querySelector('[data-section-links]');
+    if (!dropdown && !linkbar) return;
 
     var sections = Array.prototype.slice.call(
       document.querySelectorAll('[data-section-id]')
     );
     if (!sections.length) {
-      sel.disabled = true;
+      if (dropdown) dropdown.disabled = true;
       return;
     }
 
-    // Populate dropdown in document order
-    sel.innerHTML = '';
-    var topOpt = document.createElement('option');
-    topOpt.value = '__top';
-    topOpt.textContent = 'Översikt';
-    sel.appendChild(topOpt);
-    sections.forEach(function (s) {
-      var opt = document.createElement('option');
-      opt.value = s.id || ('section-' + s.getAttribute('data-section-id'));
-      opt.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
-      sel.appendChild(opt);
-    });
+    if (dropdown) {
+      // v1: populate the dropdown
+      dropdown.innerHTML = '';
+      var topOpt = document.createElement('option');
+      topOpt.value = '__top';
+      topOpt.textContent = 'Översikt';
+      dropdown.appendChild(topOpt);
+      sections.forEach(function (s) {
+        var opt = document.createElement('option');
+        opt.value = s.id || ('section-' + s.getAttribute('data-section-id'));
+        opt.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
+        dropdown.appendChild(opt);
+      });
+      dropdown.addEventListener('change', function () {
+        var v = dropdown.value;
+        if (!v) return;
+        if (v === '__top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+        var target = document.getElementById(v);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
 
-    // Click -> scroll to section
-    sel.addEventListener('change', function () {
-      var v = sel.value;
-      if (!v) return;
-      if (v === '__top') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-      var target = document.getElementById(v);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
+    var links = [];
+    if (linkbar) {
+      // v2: populate the inline link bar
+      linkbar.innerHTML = '';
+      sections.forEach(function (s) {
+        var a = document.createElement('a');
+        a.href = '#' + s.id;
+        a.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          var target = document.getElementById(s.id);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        linkbar.appendChild(a);
+        links.push(a);
+      });
+    }
 
     // Scroll-spy: pick the section whose top is closest to (but at or
-    // above) the sticky-nav bottom.
+    // above) the sticky-nav bottom. Updates both dropdown.value and
+    // link.is-active class so either UI reflects current position.
     var navHeight = (document.querySelector('.report-nav') || {}).offsetHeight || 56;
     var ticking = false;
 
     function updateActive() {
       ticking = false;
       var threshold = navHeight + 24;
-      var active = null;
+      var activeIdx = -1;
       for (var i = 0; i < sections.length; i++) {
         var rect = sections[i].getBoundingClientRect();
         if (rect.top - threshold <= 0) {
-          active = sections[i];
+          activeIdx = i;
         } else {
           break;
         }
       }
-      if (active) {
-        sel.value = active.id;
+      if (activeIdx >= 0) {
+        if (dropdown) dropdown.value = sections[activeIdx].id;
+        if (linkbar) {
+          links.forEach(function (a, i) { a.classList.toggle('is-active', i === activeIdx); });
+        }
       } else if (window.scrollY < 50) {
-        sel.value = '__top';
+        if (dropdown) dropdown.value = '__top';
+        if (linkbar) links.forEach(function (a) { a.classList.remove('is-active'); });
       }
     }
 
