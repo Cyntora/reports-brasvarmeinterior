@@ -433,6 +433,34 @@ section.page--dark .unavailable { background: rgba(255, 255, 255, 0.05); border-
 .next-steps--external { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border); }
 .next-steps--external h2 { font-size: clamp(22px, 2.4vw, 32px); }
 
+/* ──────────────────────────── Dark-section text overrides ──────────────────────────── */
+/* Anything that renders body text needs to flip to ink-on-dark when the
+   parent section has `.page--dark`. Default rules use --ink (dark) which
+   is invisible on the dark warm-charcoal background. */
+section.page--dark { color: var(--ink-on-dark); }
+section.page--dark p,
+section.page--dark li,
+section.page--dark .next-steps li,
+section.page--dark .next-steps__uppsell,
+section.page--dark .summary-block p,
+section.page--dark .donut-legend .name,
+section.page--dark .donut-legend .value,
+section.page--dark .donut-center__value,
+section.page--dark .card__head .label { color: var(--ink-on-dark); }
+section.page--dark .donut-center__label,
+section.page--dark .card__head,
+section.page--dark .band,
+section.page--dark .chart-card__head .title,
+section.page--dark .eyebrow,
+section.page--dark .fx-note,
+section.page--dark .source-caption { color: var(--ink-muted-dark); }
+section.page--dark .next-steps li { border-bottom-color: var(--border-dark); }
+section.page--dark .next-steps--external { border-top-color: var(--border-dark); }
+section.page--dark .data-table tr:hover td { background: rgba(255, 255, 255, 0.04); }
+section.page--dark .summary-block { background: var(--bg-dark-soft); border-left-color: var(--brass); }
+section.page--dark .summary-block h2,
+section.page--dark .summary-block p { color: var(--ink-on-dark); }
+
 /* ──────────────────────────── Page header (deprecated for v2) ──────────────────────────── */
 .page-header { display: none; }
 
