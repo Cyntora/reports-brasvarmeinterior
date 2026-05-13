@@ -53,49 +53,86 @@
   // ----- 2. Section nav with scroll-spy --------------------------------- //
 
   function initSectionNav() {
-    var sel = document.querySelector('[data-section-jump]');
-    if (!sel) return;
+    // v1 uses a dropdown only. v2 has BOTH an inline link bar AND a
+    // hidden dropdown that swaps in when the link bar can't fit all
+    // section names side-by-side.
+    var dropdown = document.querySelector('[data-section-jump]');
+    var dropdownWrap = document.querySelector('[data-section-dropdown-wrap]');
+    var linkbar = document.querySelector('[data-section-links]');
+    if (!dropdown && !linkbar) return;
 
     var sections = Array.prototype.slice.call(
       document.querySelectorAll('[data-section-id]')
     );
     if (!sections.length) {
-      sel.disabled = true;
+      if (dropdown) dropdown.disabled = true;
       return;
     }
 
-    // Populate dropdown in document order
-    sel.innerHTML = '';
-    var topOpt = document.createElement('option');
-    topOpt.value = '__top';
-    topOpt.textContent = 'Översikt';
-    sel.appendChild(topOpt);
-    sections.forEach(function (s) {
-      var opt = document.createElement('option');
-      opt.value = s.id || ('section-' + s.getAttribute('data-section-id'));
-      opt.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
-      sel.appendChild(opt);
-    });
+    if (dropdown) {
+      dropdown.innerHTML = '';
+      var topOpt = document.createElement('option');
+      topOpt.value = '__top';
+      topOpt.textContent = 'Översikt';
+      dropdown.appendChild(topOpt);
+      sections.forEach(function (s) {
+        var opt = document.createElement('option');
+        opt.value = s.id || ('section-' + s.getAttribute('data-section-id'));
+        opt.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
+        dropdown.appendChild(opt);
+      });
+      dropdown.addEventListener('change', function () {
+        var v = dropdown.value;
+        if (!v) return;
+        if (v === '__top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+        var target = document.getElementById(v);
+        if (target) {
+          clickPin = v;
+          if (clickPinTimer) clearTimeout(clickPinTimer);
+          clickPinTimer = setTimeout(function () { clickPin = null; }, 1000);
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
 
-    // Click -> scroll to section, and pin the active state to the
-    // chosen section while smooth-scroll runs so the dropdown matches
-    // user intent even when the page can't scroll the section all the
-    // way to threshold (near-bottom sections).
-    sel.addEventListener('change', function () {
-      var v = sel.value;
-      if (!v) return;
-      if (v === '__top') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+    var links = [];
+    if (linkbar) {
+      linkbar.innerHTML = '';
+      sections.forEach(function (s) {
+        var a = document.createElement('a');
+        a.href = '#' + s.id;
+        a.textContent = s.getAttribute('data-section-title') || s.getAttribute('data-section-id');
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          var target = document.getElementById(s.id);
+          if (target) {
+            clickPin = s.id;
+            if (clickPinTimer) clearTimeout(clickPinTimer);
+            clickPinTimer = setTimeout(function () { clickPin = null; }, 1000);
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+        linkbar.appendChild(a);
+        links.push(a);
+      });
+    }
+
+    // Toggle link-bar vs dropdown based on whether the link bar
+    // overflows. Run on load and on every resize.
+    function syncNavMode() {
+      if (!linkbar || !dropdownWrap) return;
+      linkbar.classList.remove('report-nav__links--collapsed');
+      dropdownWrap.classList.remove('is-active');
+      var overflows = linkbar.scrollWidth > linkbar.clientWidth + 2;
+      if (overflows) {
+        linkbar.classList.add('report-nav__links--collapsed');
+        dropdownWrap.classList.add('is-active');
       }
-      var target = document.getElementById(v);
-      if (target) {
-        clickPin = v;
-        if (clickPinTimer) clearTimeout(clickPinTimer);
-        clickPinTimer = setTimeout(function () { clickPin = null; }, 1000);
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
+    }
+    if (linkbar && dropdownWrap) {
+      syncNavMode();
+      window.addEventListener('resize', syncNavMode);
+    }
 
     // Scroll-spy: pick the section whose top is closest to (but at or
     // above) the sticky-nav bottom. Two edge cases the simple algorithm
@@ -114,11 +151,20 @@
     var clickPin = null;
     var clickPinTimer = null;
 
+    function setActive(id) {
+      if (dropdown) dropdown.value = id;
+      if (linkbar) {
+        links.forEach(function (a) {
+          a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    }
+
     function updateActive() {
       ticking = false;
       // If the user just clicked a section link, honour that for ~1s
       // while the smooth-scroll animation runs.
-      if (clickPin) { sel.value = clickPin; return; }
+      if (clickPin) { setActive(clickPin); return; }
       var threshold = navHeight + 24;
       var active = null;
       for (var i = 0; i < sections.length; i++) {
@@ -133,10 +179,13 @@
       if (atBottom && sections.length) {
         active = sections[sections.length - 1];
       }
-      if (active) {
-        sel.value = active.id;
+      var activeIdx = active ? sections.indexOf(active) : -1;
+      if (activeIdx >= 0) {
+        if (dropdown) dropdown.value = sections[activeIdx].id;
+        if (linkbar) links.forEach(function (a, i) { a.classList.toggle('is-active', i === activeIdx); });
       } else if (window.scrollY < 50) {
-        sel.value = '__top';
+        if (dropdown) dropdown.value = '__top';
+        if (linkbar) links.forEach(function (a) { a.classList.remove('is-active'); });
       }
     }
 
