@@ -334,13 +334,13 @@ section.page--dark .chart-card__head .title { color: var(--ink-on-dark); }
   display: flex; flex-direction: column; gap: 6px;
   font-family: var(--font-body); font-size: 13px;
 }
-.donut-legend, .donut-row .legend .row {
+.donut-legend .row, .donut-row .legend .row {
   display: grid; grid-template-columns: 12px 1fr auto;
   gap: 10px; align-items: center;
 }
-.donut-legend, .donut-row .legend .swatch { width: 10px; height: 10px; }
-.donut-legend, .donut-row .legend .name { color: var(--ink); }
-.donut-legend, .donut-row .legend .value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.donut-legend .swatch, .donut-row .legend .swatch { width: 10px; height: 10px; }
+.donut-legend .name, .donut-row .legend .name { color: var(--ink); }
+.donut-legend .value, .donut-row .legend .value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .donut-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
 @media (max-width: 600px) { .donut-row { grid-template-columns: 1fr; } }
 
@@ -443,8 +443,10 @@ section.page--dark li,
 section.page--dark .next-steps li,
 section.page--dark .next-steps__uppsell,
 section.page--dark .summary-block p,
-section.page--dark .donut-legend, .donut-row .legend .name,
-section.page--dark .donut-legend, .donut-row .legend .value,
+section.page--dark .donut-legend .name,
+section.page--dark .donut-row .legend .name,
+section.page--dark .donut-legend .value,
+section.page--dark .donut-row .legend .value,
 section.page--dark .donut-center__value,
 section.page--dark .card__head .label { color: var(--ink-on-dark); }
 section.page--dark .donut-center__label,
