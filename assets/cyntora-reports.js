@@ -146,10 +146,10 @@
     //      well below threshold. The click handler now sets the active
     //      state immediately to the clicked section so the dropdown
     //      doesn't lag behind user intent during the smooth-scroll.
-    var navHeight = (document.querySelector('.report-nav') || {}).offsetHeight || 56;
     var ticking = false;
     var clickPin = null;
     var clickPinTimer = null;
+    var navEl = document.querySelector('.report-nav');
 
     function setActive(id) {
       if (dropdown) dropdown.value = id;
@@ -165,6 +165,10 @@
       // If the user just clicked a section link, honour that for ~1s
       // while the smooth-scroll animation runs.
       if (clickPin) { setActive(clickPin); return; }
+      // Recompute nav height each frame — the sticky nav wraps to 2 rows
+      // on mobile (dropdown gets its own line), so the cached value from
+      // init would be wrong on resize. Cheap getBoundingClientRect call.
+      var navHeight = navEl ? navEl.offsetHeight : 56;
       var threshold = navHeight + 24;
       var active = null;
       for (var i = 0; i < sections.length; i++) {
@@ -175,7 +179,15 @@
           break;
         }
       }
-      var atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
+      // At-bottom override: when scrolled to (or within 60px of) the
+      // bottom of the page, force-activate the last section. Mobile
+      // browsers can off-by-a-few-px the scrollHeight calculation due
+      // to dynamic URL bars, so we use a generous threshold.
+      var docHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight
+      );
+      var atBottom = (window.innerHeight + window.scrollY) >= (docHeight - 60);
       if (atBottom && sections.length) {
         active = sections[sections.length - 1];
       }
@@ -188,6 +200,13 @@
         if (linkbar) links.forEach(function (a) { a.classList.remove('is-active'); });
       }
     }
+    // Recompute on resize (handles nav wrapping)
+    window.addEventListener('resize', function () {
+      if (!ticking) {
+        window.requestAnimationFrame(updateActive);
+        ticking = true;
+      }
+    }, { passive: true });
 
     window.addEventListener('scroll', function () {
       if (!ticking) {
