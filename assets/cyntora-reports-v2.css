@@ -177,10 +177,16 @@ section.page--dark .eyebrow { color: var(--ink-muted-dark); }
 }
 .cover h1 em { font-style: italic; font-weight: 300; color: var(--brass); }
 .cover__kicker {
-  max-width: 56ch;
-  font-size: clamp(15px, 1.3vw, 19px);
-  color: var(--ink-muted-dark); line-height: 1.5;
+  max-width: 60ch;
+  font-size: clamp(15px, 1.25vw, 18px);
+  color: var(--ink-muted-dark);
+  line-height: 1.7;
+  letter-spacing: 0.005em;
+  text-wrap: pretty;
 }
+/* When the cover kicker is split into multiple paragraphs, give them
+   air between each other so the eye can pause. */
+.cover__kicker + .cover__kicker { margin-top: 14px; }
 .cover__bottom {
   display: grid; grid-template-columns: 1fr 1fr 1fr;
   gap: 32px; padding-top: 24px;
