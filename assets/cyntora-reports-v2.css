@@ -430,15 +430,23 @@ section.page--dark .data-table td:first-child { color: var(--ink-on-dark); }
 
 /* ──────────────────────────── Takeaway & callouts ──────────────────────────── */
 .takeaway, .section__takeaway {
-  margin-top: 32px;
-  padding: 18px 22px;
+  margin-top: 36px;
+  padding: 20px 24px 22px;
   border-left: 3px solid var(--brass);
   background: var(--brass-soft);
-  font-family: var(--font-body); font-size: 15px;
-  line-height: 1.55; color: var(--ink); max-width: 80ch;
+  font-family: var(--font-body);
+  color: var(--ink); max-width: 80ch;
 }
+.takeaway__label {
+  font-family: var(--font-body);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--brass); margin-bottom: 8px;
+}
+.takeaway__body { font-size: 15.5px; line-height: 1.6; }
 section.page--dark .takeaway,
 section.page--dark .section__takeaway { background: rgba(181, 143, 75, 0.16); color: var(--ink-on-dark); }
+section.page--dark .takeaway__label { color: var(--brass); }
 .unavailable {
   margin-top: 16px;
   padding: 16px 20px;
