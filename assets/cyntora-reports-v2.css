@@ -170,10 +170,16 @@ section.page--dark .eyebrow { color: var(--ink-muted-dark); }
 }
 .cover h1 {
   color: var(--ink-on-dark);
-  font-size: clamp(48px, 8vw, 112px);
+  font-size: clamp(36px, 8vw, 112px);
   font-weight: 400; line-height: 0.98;
   letter-spacing: -0.025em;
   margin-bottom: 24px;
+  /* Long single-word names (e.g. "Brasvärmeinteriör") would otherwise
+     punch outside the viewport on small screens. Allow breaking inside
+     the word when there's no other option. */
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
 }
 .cover h1 em { font-style: italic; font-weight: 300; color: var(--brass); }
 .cover__kicker {
