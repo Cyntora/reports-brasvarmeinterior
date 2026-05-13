@@ -354,7 +354,11 @@ section.page--dark .chart-card {
 section.page--dark .chart-card__head .value,
 section.page--dark .chart-card__head .title { color: var(--ink-on-dark); }
 .chart-wrap { position: relative; height: 220px; }
-.chart-wrap--short { height: 140px; }
+/* `--short` is the universal height for donuts, sparklines and any
+   inline trend chart. Must be the SAME across every section so donuts
+   are visually uniform. Do NOT override per-context — if a layout
+   needs more vertical room, fix the grid, not the chart. */
+.chart-wrap--short { height: 280px; }
 .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px; }
 .chart-row--3 { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 900px) { .chart-row, .chart-row--3 { grid-template-columns: 1fr; } }
@@ -662,9 +666,8 @@ section.page--dark .sem-col__unavailable { border-color: rgba(255, 255, 255, 0.1
   gap: 18px;
   align-items: stretch;
 }
-.card-grid--3 .chart-wrap--short {
-  height: 200px;  /* taller when donut is alone on its row */
-}
+/* (removed) .card-grid--3 .chart-wrap--short override — height is now
+   universal at 200px via the .chart-wrap--short rule above. */
 .card-grid--3 .legend {
   margin-top: 8px;
   max-width: 100%;
