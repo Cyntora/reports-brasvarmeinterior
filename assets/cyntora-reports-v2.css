@@ -492,17 +492,98 @@ section.page--dark .summary-block p { color: var(--ink-on-dark); }
 }
 .cover-notes li:last-child:not(:only-child)::before { display: none; }
 
+/* ──────────────────────────── Tables: always scrollable horizontally ─── */
+/* Tables can have many columns (campaigns, keywords) and at narrow widths
+   they overflow. Wrap them so they scroll inside their container instead
+   of getting clipped or overflowing the page. */
+.data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.data-table { min-width: 480px; }
+
 /* ──────────────────────────── Responsive ──────────────────────────── */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   section.page { padding: 8vh 5vw; }
-  .cover { padding: 6vh 5vw 5vh; min-height: auto; }
-  .report-nav { padding: 14px 5vw; }
-  .report-nav__inner { gap: 12px; }
-  .report-nav__links { order: 3; flex-basis: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; }
-  .card-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
-  .card__value { font-size: 30px; }
-  .summary-block { padding: 22px 24px; }
+  .wrap { max-width: 100%; }
+  .chart-row { grid-template-columns: 1fr; gap: 20px; }
+  .chart-row--3 { grid-template-columns: 1fr 1fr; }
+  .donut-row { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .card-grid--asym { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 600px) {
-  .card-grid { grid-template-columns: 1fr; }
+
+@media (max-width: 768px) {
+  section.page { padding: 6vh 5vw; }
+  .cover {
+    min-height: auto;
+    padding: 5vh 5vw 5vh;
+  }
+  .cover::after { display: none; }
+  .cover__top { flex-wrap: wrap; gap: 12px; }
+  .cover__center { padding: 4vh 0 3vh; }
+  .cover h1 { font-size: clamp(40px, 9vw, 64px); margin-bottom: 18px; }
+  .cover__kicker { font-size: 14.5px; }
+  .cover__bottom {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+    padding-top: 20px;
+  }
+  .cover__bottom .col .val { font-size: 18px; }
+
+  /* Nav: stack and let link bar scroll horizontally */
+  .report-nav { padding: 12px 5vw; }
+  .report-nav__inner { gap: 12px; flex-wrap: wrap; }
+  .report-nav__brand .label { display: none; }  /* save horizontal space */
+  .report-nav__brand .divider { display: none; }
+  .report-nav__links {
+    order: 4;
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .report-nav__links a { padding: 8px 10px; font-size: 12.5px; }
+  /* If the link bar is overflowing (which is normal at this width)
+     keep the bar visible — it's now horizontally scrollable instead. */
+  .report-nav__links--collapsed { display: flex !important; }
+  .report-nav__dropdown.is-active { display: none; }
+
+  /* Cards / KPI stack */
+  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .card-grid--asym { grid-template-columns: 1fr 1fr; }
+  .card__value { font-size: clamp(28px, 8vw, 40px); }
+  .card__value--big { font-size: clamp(32px, 9vw, 48px); }
+  .card { padding: 14px 0 0; }
+  .card__head { font-size: 11px; }
+  .chart-row--3 { grid-template-columns: 1fr; }
+
+  /* Summary block */
+  .summary-block { padding: 20px 22px; }
+  .summary-block h2 { font-size: clamp(24px, 6vw, 32px); }
+  .summary-block p { font-size: 15px; }
+
+  /* Section title */
+  .section-title { font-size: clamp(28px, 7vw, 40px); }
+  .section-title__icon { height: 22px; }
+
+  /* Next steps */
+  .next-steps h2 { font-size: clamp(26px, 6vw, 36px); }
+  .next-steps li { font-size: 15px; padding-left: 20px; }
+  .next-steps__uppsell { padding: 16px 18px; }
+
+  /* Chart heights */
+  .chart-wrap { height: 200px; }
+  .chart-wrap--short { height: 130px; }
+}
+
+@media (max-width: 480px) {
+  section.page { padding: 5vh 4vw; }
+  .cover { padding: 4vh 4vw; }
+  .cover h1 { font-size: clamp(36px, 11vw, 52px); }
+  .cover__bottom { grid-template-columns: 1fr; gap: 14px; }
+  .card-grid, .card-grid--asym { grid-template-columns: 1fr; gap: 16px; }
+  .summary-block { padding: 18px 18px; }
+  .section-title { gap: 10px; }
+  .data-table th, .data-table td { padding: 10px; font-size: 13px; }
 }
