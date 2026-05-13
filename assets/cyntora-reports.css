@@ -207,6 +207,56 @@ a { overflow-wrap: anywhere; word-break: break-word; }
 .cover .footer .url { font-size: 14px; }
 .cover .footer .fx-note { font-size: 11px; color: var(--c-text-muted); margin-top: 16px; font-style: italic; }
 
+/* Multi-market cover notes: render as a tight left-aligned card with
+   a top accent line. Replaces the centred "klump" of stacked notes
+   that read as a wall of grey text. */
+.cover .footer .cover-notes {
+  list-style: none;
+  padding: 20px 28px;
+  margin: 0 auto;
+  max-width: 720px;
+  text-align: left;
+  background: #fafaf7;
+  border-top: 2px solid var(--c-accent, #1f4e4a);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--c-text);
+}
+.cover .footer .cover-notes li {
+  padding: 4px 0 4px 18px;
+  position: relative;
+  color: var(--c-text);
+}
+.cover .footer .cover-notes li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 11px;
+  width: 8px;
+  height: 1px;
+  background: var(--c-accent, #1f4e4a);
+}
+/* The FX-rate line (always the last note when present) gets dimmer
+   weight + a small top divider so it reads as the technical caveat. */
+.cover .footer .cover-notes li:last-child:has(+ :not(:last-child)) { border-top: none; }
+.cover .footer .cover-notes li:last-child {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed #d8d8c8;
+  color: var(--c-text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.cover .footer .cover-notes li:last-child::before { display: none; }
+.cover .footer .cover-notes li:only-child {
+  border-top: none; padding-top: 0; margin-top: 0;
+  color: var(--c-text); font-size: 12.5px;
+}
+.cover .footer .cover-notes li:only-child::before {
+  content: ""; position: absolute; left: 0; top: 11px;
+  width: 8px; height: 1px; background: var(--c-accent, #1f4e4a); display: block;
+}
+
 /* ---------- Page header (recurs on every page after the cover) ------------ */
 
 .page-header {
