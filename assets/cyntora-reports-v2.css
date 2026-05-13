@@ -511,10 +511,17 @@ section.page--dark .summary-block p { color: var(--ink-on-dark); }
 @media (max-width: 1024px) {
   section.page { padding: 8vh 5vw; }
   .wrap { max-width: 100%; }
+  /* Donut chart + adjacent line chart in same card-grid: stack at this
+     width so each chart gets full width. Previously cramped at ~50%. */
   .chart-row { grid-template-columns: 1fr; gap: 20px; }
   .chart-row--3 { grid-template-columns: 1fr 1fr; }
-  .donut-row { grid-template-columns: 1fr; }
+  /* Inner donut + legend layout: keep them side-by-side until ~600px */
+  .donut-row { grid-template-columns: 1fr 1fr; gap: 20px; }
+  /* card-grid is used for both KPI strips AND "donut card + line chart"
+     row. Force single-column on the donut+chart row at this width by
+     targeting card-grids that wrap chart-cards (donut/line). */
   .card-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .card-grid:has(.chart-card) { grid-template-columns: 1fr; }
   .card-grid--asym { grid-template-columns: 1fr 1fr; }
 }
 
@@ -559,12 +566,17 @@ section.page--dark .summary-block p { color: var(--ink-on-dark); }
 
   /* Cards / KPI stack */
   .card-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .card-grid:has(.chart-card) { grid-template-columns: 1fr; gap: 24px; }
   .card-grid--asym { grid-template-columns: 1fr 1fr; }
   .card__value { font-size: clamp(28px, 8vw, 40px); }
   .card__value--big { font-size: clamp(32px, 9vw, 48px); }
   .card { padding: 14px 0 0; }
   .card__head { font-size: 11px; }
   .chart-row--3 { grid-template-columns: 1fr; }
+  /* Donut card: stack donut + legend at this width so they don't squash */
+  .donut-row { grid-template-columns: 1fr; gap: 8px; }
+  /* Chart cards: tighter padding on narrow screens */
+  .chart-card { padding: 18px 18px; }
 
   /* Summary block */
   .summary-block { padding: 20px 22px; }
