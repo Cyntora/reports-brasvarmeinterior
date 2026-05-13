@@ -543,26 +543,20 @@ section.page--dark .summary-block p { color: var(--ink-on-dark); }
   }
   .cover__bottom .col .val { font-size: 18px; }
 
-  /* Nav: stack and let link bar scroll horizontally */
+  /* Nav: at mobile width we prefer the dropdown (more touch-friendly
+     than a horizontal-scrollable link bar that users don't always
+     discover). Force-hide the link bar and force-show the dropdown. */
   .report-nav { padding: 12px 5vw; }
-  .report-nav__inner { gap: 12px; flex-wrap: wrap; }
+  .report-nav__inner { gap: 10px; flex-wrap: wrap; }
   .report-nav__brand .label { display: none; }  /* save horizontal space */
   .report-nav__brand .divider { display: none; }
-  .report-nav__links {
-    order: 4;
-    flex: 1 0 100%;
-    justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+  .report-nav__links { display: none !important; }
+  .report-nav__dropdown {
+    display: flex !important;
+    order: 3;
+    flex: 1 1 100%;
   }
-  .report-nav__links a { padding: 8px 10px; font-size: 12.5px; }
-  /* If the link bar is overflowing (which is normal at this width)
-     keep the bar visible — it's now horizontally scrollable instead. */
-  .report-nav__links--collapsed { display: flex !important; }
-  .report-nav__dropdown.is-active { display: none; }
+  .report-nav__dropdown select { flex: 1; min-width: 0; }
 
   /* Cards / KPI stack */
   .card-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
