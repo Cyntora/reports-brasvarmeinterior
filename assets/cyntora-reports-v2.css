@@ -13,6 +13,43 @@
 @font-face { font-family: "Guau"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/guau-regular.woff2") format("woff2"); }
 @font-face { font-family: "Guau"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/guau-bold.woff2") format("woff2"); }
 
+/* ───────────────────────────────────────────────────────────────────────
+   Theme contract
+   ───────────────────────────────────────────────────────────────────────
+   Every brand-coloured surface in v2 reads from one of the variables
+   below. The defaults below are Cyntora's own palette; per-client themes
+   override individual variables via `client.theme` in the client YAML
+   (see `templates/base-v2.html.j2` and the `feedback_per_client_brand_theme`
+   memory entry). To re-theme a client, change ONLY these variables —
+   never the rules that consume them. To extend the system with a new
+   themable surface, add a new variable here and pipe it through
+   `templates/base-v2.html.j2`'s override block.
+
+   Surface map (single source of truth):
+     --bg-cream        body bg, sticky nav bg, dropdown select bg
+     --bg-cream-soft   alt section bg (.page--paper), .chart-card bg,
+                       .summary-block bg, dropdown select bg
+     --bg-dark         cover bg, "Vad vi gör härnäst" bg, --accent-text
+                       inside dark sections (auto)
+     --bg-dark-soft    .summary-block bg inside dark sections
+     --ink             body text, headings, card values, table cells
+     --ink-on-dark     all text on dark sections, --accent inside dark
+                       sections (auto), section logos (white SVGs)
+     --ink-muted       small labels, eyebrows on light bg, card heads,
+                       muted text
+     --ink-muted-dark  small labels on dark bg, cover meta
+     --border          card / table / dropdown borders on light bg
+     --border-dark     borders inside dark sections
+     --brass           ALL brand-accent surfaces: KPI top borders on dark,
+                       eyebrow ::before dot, cover h1 em italics, scroll-
+                       spy nav underline, .summary-block left border,
+                       data-table th border on dark, .sem-col__band, etc.
+     --brass-soft      hover tints on rows that need the accent tint
+     --accent / --accent-soft / --accent-text
+                       context-sensitive duals — dark sections auto-flip
+                       them to --ink-on-dark / --bg-dark. Used for period
+                       dropdown hover border and data-table row hover bg.
+   ─────────────────────────────────────────────────────────────────────── */
 :root {
   --c-base-100: #f5f6f3;  --c-base-200: #e5e8de;  --c-base-300: #dfe2d6;
   --c-base-400: #c9cbc1;  --c-base-500: #b2b5ab;  --c-base-700: #868880;
@@ -113,7 +150,7 @@ section.page {
   scroll-margin-top: 80px;
 }
 section.page--paper { background: var(--bg-cream-soft); }
-section.page--dark { background: var(--bg-dark); color: var(--ink-on-dark); border-bottom-color: var(--border-dark); --accent: #fffbf4; --accent-text: #272723; }
+section.page--dark { background: var(--bg-dark); color: var(--ink-on-dark); border-bottom-color: var(--border-dark); --accent: var(--ink-on-dark); --accent-text: var(--bg-dark); }
 section.page--dark h1, section.page--dark h2, section.page--dark h3, section.page--dark h4 { color: var(--ink-on-dark); }
 
 .wrap { max-width: 1180px; width: 100%; margin: 0 auto; }
@@ -136,7 +173,7 @@ section.page--dark .eyebrow { color: var(--ink-muted-dark); }
 .cover {
   background: var(--bg-dark);
   color: var(--ink-on-dark);
-  --accent: #fffbf4; --accent-text: #272723;
+  --accent: var(--ink-on-dark); --accent-text: var(--bg-dark);
   min-height: 92vh;
   padding: 8vh 5vw 6vh;
   display: flex; flex-direction: column; justify-content: space-between;
