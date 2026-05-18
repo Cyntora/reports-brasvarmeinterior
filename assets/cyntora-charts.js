@@ -319,6 +319,26 @@
     });
   }
 
+  // Force every chart to re-measure when the viewport changes size. Chart.js
+  // v4's `responsive:true` SHOULD do this via its internal ResizeObserver,
+  // but in practice the donut + side-legend layout sometimes doesn't pick
+  // up the new column width when a CSS grid switches breakpoints (3-col →
+  // 2-col → 1-col). The user reported needing a hard-refresh to make charts
+  // reflow after resize — this listener removes that.
+  var resizeTimer = null;
+  function resizeAllCharts() {
+    Object.keys(Chart.instances || {}).forEach(function (id) {
+      var c = Chart.instances[id];
+      if (c && typeof c.resize === 'function') {
+        try { c.resize(); } catch (e) { /* ignore */ }
+      }
+    });
+  }
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resizeAllCharts, 120);
+  });
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', hydrateAll);
   } else {
