@@ -715,16 +715,21 @@ section.page--dark .sem-col__unavailable { border-color: rgba(255, 255, 255, 0.1
   .wrap { max-width: 100%; }
   /* Donut chart + adjacent line chart in same card-grid: stack at this
      width so each chart gets full width. Previously cramped at ~50%. */
-  .chart-row { grid-template-columns: 1fr; gap: 20px; }
-  .chart-row--3 { grid-template-columns: 1fr 1fr; }
-  /* Inner donut + legend layout: keep them side-by-side until ~600px */
-  .donut-row { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .chart-row { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .chart-row--3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  /* Inner donut + legend layout: keep them side-by-side until ~600px.
+     minmax(0, 1fr) prevents content (canvas with width attribute)
+     from forcing the column wider than the parent. */
+  .donut-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
   /* card-grid is used for both KPI strips AND "donut card + line chart"
      row. Force single-column on the donut+chart row at this width by
-     targeting card-grids that wrap chart-cards (donut/line). */
-  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
-  .card-grid:has(.chart-card) { grid-template-columns: 1fr; }
-  .card-grid--asym { grid-template-columns: 1fr 1fr; }
+     targeting card-grids that wrap chart-cards. minmax(0, 1fr) for the
+     :has(.chart-card) case so a canvas with width="691" baked-in HTML
+     attribute can't push the column past viewport — the canvas/CSS
+     feedback loop that was the root cause of the resize stuck-width bug. */
+  .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .card-grid:has(.chart-card) { grid-template-columns: minmax(0, 1fr); }
+  .card-grid--asym { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -760,17 +765,24 @@ section.page--dark .sem-col__unavailable { border-color: rgba(255, 255, 255, 0.1
   }
   .report-nav__dropdown select { flex: 1; min-width: 0; }
 
-  /* Cards / KPI stack */
-  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
-  .card-grid:has(.chart-card) { grid-template-columns: 1fr; gap: 24px; }
-  .card-grid--asym { grid-template-columns: 1fr 1fr; }
+  /* Cards / KPI stack — minmax(0, 1fr) instead of plain 1fr so a wide
+     child (e.g. a Chart.js canvas with width="691" attribute) cannot
+     force the column wider than the container. Plain `1fr` lets columns
+     grow past container if their content has min-content larger than the
+     fr-unit. This was the root cause of charts persisting at their
+     pre-resize pixel width: the canvas's HTML width attribute forced
+     the grid column wider than viewport. */
+  .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .card-grid:has(.chart-card) { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .card-grid--asym { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .card__value { font-size: clamp(28px, 8vw, 40px); }
   .card__value--big { font-size: clamp(32px, 9vw, 48px); }
   .card { padding: 14px 0 0; }
   .card__head { font-size: 11px; }
-  .chart-row--3 { grid-template-columns: 1fr; }
-  /* Donut card: stack donut + legend at this width so they don't squash */
-  .donut-row { grid-template-columns: 1fr; gap: 8px; }
+  .chart-row--3 { grid-template-columns: minmax(0, 1fr); }
+  /* Donut card: stack donut + legend at this width so they don't squash.
+     minmax(0, 1fr) prevents wide canvas children from blowing out the row. */
+  .donut-row { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   /* Chart cards: tighter padding on narrow screens */
   .chart-card { padding: 18px 18px; }
 

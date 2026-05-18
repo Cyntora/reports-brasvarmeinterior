@@ -334,18 +334,39 @@
     if (existing) {
       try { existing.destroy(); } catch (e) { /* ignore */ }
     }
-    // CRITICAL for large→small reflows (when container WIDENS as grid goes
-    // from 2-col → 1-col): Chart.js' destroy() leaves stale `width`/`height`
-    // attributes and inline `style` dims on the canvas element. The next
-    // `new Chart()` re-uses those baked-in dims as a starting point instead
-    // of measuring the parent fresh, so the canvas stays locked at the
-    // OLD (smaller) pixel width even after the container has grown. Wiping
-    // all dimension attributes before re-instantiating forces Chart.js to
-    // measure the parent's CURRENT bounding rect.
+    // CRITICAL — break the canvas/parent feedback loop on large→small reflows.
+    //
+    // Chart.js with `responsive:true; maintainAspectRatio:false` sets
+    // explicit `width="691"` and `style.width: 691px` on the canvas tag at
+    // init. After the user shrinks the window, the canvas KEEPS those 691px
+    // dimensions. Because the canvas is 691px wide as a DOM element, it
+    // FORCES its parent (.chart-wrap → .chart-card → .card-grid → .wrap)
+    // to stay 691px wide too — pushing the whole page wider than the
+    // viewport. The user sees content cut off on the right.
+    //
+    // If we just `destroy()` and re-init, Chart.js measures `parentElement`
+    // again — but parent is STILL 691px wide because the canvas hasn't
+    // shrunk yet. So the new chart spawns at 691px again. Endless loop.
+    //
+    // The fix: collapse the canvas to 0×0 FIRST, force a layout reflow on
+    // the parent so it shrinks to its CSS-driven natural width without
+    // the canvas pushing it wide, THEN clear the styles and let Chart.js
+    // re-measure parent. Now parent reports its true viewport-fitted width
+    // and the new chart spawns at the correct size.
     canvas.removeAttribute('width');
     canvas.removeAttribute('height');
+    canvas.style.width = '0px';
+    canvas.style.height = '0px';
+    canvas.style.maxWidth = '0px';
+    canvas.style.maxHeight = '0px';
+    // Force a synchronous layout pass so the parent reflows without the
+    // canvas occupying any space.
+    void canvas.parentElement.offsetWidth;
+    // Now reset to let CSS govern dimensions again.
     canvas.style.width = '';
     canvas.style.height = '';
+    canvas.style.maxWidth = '';
+    canvas.style.maxHeight = '';
     try {
       var spec = JSON.parse(canvas.getAttribute('data-cyntora') || '{}');
     } catch (e) { return; }
