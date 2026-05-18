@@ -292,6 +292,17 @@ section.page--dark .eyebrow { color: var(--ink-muted-dark); }
 }
 .card-grid--asym { grid-template-columns: 1fr 1fr; }
 @media (max-width: 700px) { .card-grid--asym { grid-template-columns: 1fr; } }
+
+/* Cap base .card-grid to MAX 3 columns on wide screens. Without this the
+   `auto-fit` at 220px min spawns 4-5+ narrow cards on 1180px+ containers
+   and headline values + delta chips wrap. Variant grids (--asym, --3)
+   keep their own column counts via the :not() exclusions. */
+@media (min-width: 901px) {
+  .card-grid:not(.card-grid--asym):not(.card-grid--3) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .card--icon { display: none; }
 
 .card {
@@ -353,12 +364,14 @@ section.page--dark .chart-card {
 }
 section.page--dark .chart-card__head .value,
 section.page--dark .chart-card__head .title { color: var(--ink-on-dark); }
-.chart-wrap { position: relative; height: 220px; }
-/* `--short` is the universal height for donuts, sparklines and any
-   inline trend chart. Must be the SAME across every section so donuts
-   are visually uniform. Do NOT override per-context — if a layout
-   needs more vertical room, fix the grid, not the chart. */
-.chart-wrap--short { height: 280px; }
+/* Single universal chart height. Both .chart-wrap and .chart-wrap--short
+   resolve to 280px so any combination of donut + line + bar inside a
+   .card-grid sits at the SAME pixel height. Mismatched heights caused
+   visual overlap (engagement chart card stretched while its inner canvas
+   stayed at 220px, leaving the donut legend appearing to extend past the
+   neighbour). One number, no per-chart overrides. */
+.chart-wrap,
+.chart-wrap--short { position: relative; height: 280px; }
 .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px; }
 .chart-row--3 { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 900px) { .chart-row, .chart-row--3 { grid-template-columns: 1fr; } }
