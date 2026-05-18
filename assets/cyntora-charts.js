@@ -334,6 +334,18 @@
     if (existing) {
       try { existing.destroy(); } catch (e) { /* ignore */ }
     }
+    // CRITICAL for large→small reflows (when container WIDENS as grid goes
+    // from 2-col → 1-col): Chart.js' destroy() leaves stale `width`/`height`
+    // attributes and inline `style` dims on the canvas element. The next
+    // `new Chart()` re-uses those baked-in dims as a starting point instead
+    // of measuring the parent fresh, so the canvas stays locked at the
+    // OLD (smaller) pixel width even after the container has grown. Wiping
+    // all dimension attributes before re-instantiating forces Chart.js to
+    // measure the parent's CURRENT bounding rect.
+    canvas.removeAttribute('width');
+    canvas.removeAttribute('height');
+    canvas.style.width = '';
+    canvas.style.height = '';
     try {
       var spec = JSON.parse(canvas.getAttribute('data-cyntora') || '{}');
     } catch (e) { return; }
