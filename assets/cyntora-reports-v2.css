@@ -778,9 +778,11 @@ section.page--dark .sem-col__unavailable { border-color: rgba(255, 255, 255, 0.1
   .next-steps li { font-size: 15px; padding-left: 20px; }
   .next-steps__uppsell { padding: 16px 18px; }
 
-  /* Chart heights */
-  .chart-wrap { height: 200px; }
-  .chart-wrap--short { height: 130px; }
+  /* Chart heights — unified just like the desktop rule, so donut + line
+     + bar cards in the same row align pixel-perfectly even on laptops
+     hitting the ≤1024px breakpoint. Never split these two selectors. */
+  .chart-wrap,
+  .chart-wrap--short { height: 220px; }
 }
 
 @media (max-width: 480px) {
