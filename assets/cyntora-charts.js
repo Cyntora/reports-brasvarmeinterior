@@ -320,66 +320,72 @@
     attachChartObservers();
   }
 
-  // Robust responsive resize. Chart.js v4's `responsive:true` only listens
-  // to WINDOW resize, not container resize, and when a CSS grid switches
-  // breakpoints (e.g. 3-col → 2-col → 1-col) the chart's parent width can
-  // change while window dims do too — but the order in which Chart.js
-  // measures vs the layout reflow isn't guaranteed. Result: user has to
-  // hard-refresh after resizing the window to get charts to redraw.
-  //
-  // Fix: attach a ResizeObserver to every .chart-wrap (the actual canvas
-  // parent) AND a window resize listener as a belt-and-braces fallback.
-  // Both schedule a single rAF tick to coalesce many resize events into
-  // one re-measure pass.
+  // Robust responsive resize. Chart.js v4's built-in `responsive:true`
+  // listens to window resize, but in practice when a CSS grid changes
+  // breakpoint (e.g. 2-col → 1-col at 1024px) the container width can
+  // change much more than the window did, and Chart.js sometimes measures
+  // the parent BEFORE the new layout has been committed. The reliable
+  // fix here is destructive: on each container size change, fully tear
+  // down the existing chart instance and rebuild it from its `data-cyntora`
+  // spec — that way Chart.js measures the parent FRESH at its current
+  // dimensions, with no cached size assumptions from init.
+  function rebuildChart(canvas) {
+    var existing = (typeof Chart.getChart === 'function') ? Chart.getChart(canvas) : null;
+    if (existing) {
+      try { existing.destroy(); } catch (e) { /* ignore */ }
+    }
+    try {
+      var spec = JSON.parse(canvas.getAttribute('data-cyntora') || '{}');
+    } catch (e) { return; }
+    var fn = ({
+      line: window.cyntoraLine,
+      bar: window.cyntoraBar,
+      donut: window.cyntoraDonut,
+      sparkline: window.cyntoraInlineSparkline,
+    })[spec.kind];
+    if (fn) { try { fn(canvas.id, spec); } catch (e) { /* ignore */ } }
+  }
+
   var pending = false;
-  function resizeChartInside(wrap) {
-    var canvas = wrap.querySelector('canvas[data-cyntora]');
-    if (!canvas) return;
-    var chart = (typeof Chart.getChart === 'function')
-      ? Chart.getChart(canvas)
-      : null;
-    if (!chart && Chart.instances) {
-      // v3 fallback — Chart.instances keyed by canvas-id-or-numeric-id
-      for (var k in Chart.instances) {
-        var c = Chart.instances[k];
-        if (c && c.canvas === canvas) { chart = c; break; }
-      }
-    }
-    if (chart && typeof chart.resize === 'function') {
-      try { chart.resize(); } catch (e) { /* ignore */ }
-    }
-  }
-  function resizeAllCharts() {
+  function rebuildAllCharts() {
     pending = false;
-    document.querySelectorAll('.chart-wrap, .chart-wrap--short').forEach(resizeChartInside);
+    document.querySelectorAll('canvas[data-cyntora]').forEach(rebuildChart);
   }
-  function scheduleResize() {
+  function scheduleRebuild() {
     if (pending) return;
     pending = true;
-    requestAnimationFrame(resizeAllCharts);
+    // Two rAF ticks: the first waits for the browser to commit any in-flight
+    // layout reflow, the second waits for that paint to settle. Empirically
+    // single-rAF still measured pre-reflow on some viewport changes.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(rebuildAllCharts);
+    });
   }
 
   var observedSet = new WeakSet();
   function attachChartObservers() {
-    if (typeof ResizeObserver !== 'function') return;
-    document.querySelectorAll('.chart-wrap, .chart-wrap--short').forEach(function (wrap) {
-      if (observedSet.has(wrap)) return;
-      observedSet.add(wrap);
-      var ro = new ResizeObserver(function () {
-        // The wrap itself reported a size change — re-fit the chart inside it.
-        scheduleResize();
-      });
-      ro.observe(wrap);
+    if (typeof ResizeObserver !== 'function') {
+      // Old browser — fall back to window resize only.
+      return;
+    }
+    // Observe each chart-card (the chart-wrap's parent) because the chart-wrap
+    // height is fixed and only its WIDTH changes on grid reflow. Watching
+    // the chart-card catches every layout reflow that affects chart sizing.
+    document.querySelectorAll('.chart-card').forEach(function (card) {
+      if (observedSet.has(card)) return;
+      observedSet.add(card);
+      var ro = new ResizeObserver(scheduleRebuild);
+      ro.observe(card);
     });
   }
 
-  window.addEventListener('resize', scheduleResize);
+  window.addEventListener('resize', scheduleRebuild);
 
   // Font-loading completion can also shift layout dimensions slightly. After
-  // each font finishes loading, force one final resize so the chart's grid
-  // and label widths match the post-font measurements.
+  // each font finishes loading, force one final rebuild so chart labels
+  // match the post-font measurements.
   if (document.fonts && typeof document.fonts.ready !== 'undefined') {
-    document.fonts.ready.then(function () { scheduleResize(); });
+    document.fonts.ready.then(scheduleRebuild);
   }
 
   if (document.readyState === 'loading') {
