@@ -368,14 +368,27 @@
       // Old browser — fall back to window resize only.
       return;
     }
-    // Observe each chart-card (the chart-wrap's parent) because the chart-wrap
-    // height is fixed and only its WIDTH changes on grid reflow. Watching
-    // the chart-card catches every layout reflow that affects chart sizing.
-    document.querySelectorAll('.chart-card').forEach(function (card) {
-      if (observedSet.has(card)) return;
-      observedSet.add(card);
+    // Observe EVERY canvas[data-cyntora]'s direct parent (the chart-wrap).
+    // Watching the parent catches any layout reflow that changes the
+    // canvas's available width, regardless of which wrapper class the
+    // chart uses (chart-card, donut-row half, KPI-strip sparkline cell).
+    // Belt-and-braces: also observe the .wrap container so we catch the
+    // global container width changing too.
+    document.querySelectorAll('canvas[data-cyntora]').forEach(function (canvas) {
+      var parent = canvas.parentElement;
+      if (!parent || observedSet.has(parent)) return;
+      observedSet.add(parent);
       var ro = new ResizeObserver(scheduleRebuild);
-      ro.observe(card);
+      ro.observe(parent);
+    });
+    // Also observe each .wrap so any container-level reflow triggers a
+    // rebuild even if the chart's immediate parent didn't get a clean
+    // size-change event (some browsers coalesce nested-element resizes).
+    document.querySelectorAll('.wrap, .section').forEach(function (el) {
+      if (observedSet.has(el)) return;
+      observedSet.add(el);
+      var ro2 = new ResizeObserver(scheduleRebuild);
+      ro2.observe(el);
     });
   }
 
