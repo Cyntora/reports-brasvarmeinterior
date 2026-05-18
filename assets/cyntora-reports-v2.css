@@ -130,7 +130,11 @@ a { color: inherit; }
 }
 .report-nav__dropdown select,
 .report-nav__period select {
-  background: var(--bg-cream-soft); color: var(--ink);
+  /* Transparent fill — the nav itself already has bg-cream as its background,
+     filling the dropdown again created a "card-inside-card" look. Keep just
+     the border + caret so the dropdown reads as a tap target without
+     stealing visual weight from the nav. */
+  background-color: transparent; color: var(--ink);
   border: 1px solid var(--border);
   font-family: var(--font-body); font-size: 13px; font-weight: 500;
   padding: 8px 28px 8px 12px;
@@ -195,12 +199,18 @@ section.page--dark .eyebrow { color: var(--ink-muted-dark); }
   font-family: var(--font-body);
   font-size: 11px; font-weight: 600;
   letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--brass); margin-bottom: 24px;
+  /* Use ink-on-dark instead of brass so brands whose accent == bg_dark
+     (e.g. Absorbest, where both are #003388) don't render the eyebrow
+     invisible-on-itself. ink-on-dark is contract-bound to contrast with
+     bg_dark by definition. */
+  color: var(--ink-on-dark); margin-bottom: 24px;
   display: inline-flex; align-items: center; gap: 10px;
+  opacity: 0.7;  /* slightly soften so the H1 remains the visual anchor */
 }
 .cover__eyebrow::before {
   content: ""; width: 24px; height: 1px;
-  background: var(--brass); display: inline-block;
+  background: var(--ink-on-dark); display: inline-block;
+  opacity: 0.5;
 }
 .cover h1 {
   color: var(--ink-on-dark);
