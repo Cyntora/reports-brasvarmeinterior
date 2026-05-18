@@ -401,6 +401,24 @@
     document.fonts.ready.then(scheduleRebuild);
   }
 
+  // Belt-and-braces poll: every 800ms, find any canvas whose displayed width
+  // has drifted from its parent's width by more than 5px and rebuild it.
+  // This catches the rare case where ResizeObserver doesn't fire for a
+  // specific element (some browsers skip nested-element resize events
+  // during continuous drag-resize, especially when the parent is inside
+  // a grid that itself is inside another grid).
+  setInterval(function () {
+    document.querySelectorAll('canvas[data-cyntora]').forEach(function (canvas) {
+      var parent = canvas.parentElement;
+      if (!parent) return;
+      var pW = parent.getBoundingClientRect().width;
+      var cW = canvas.getBoundingClientRect().width;
+      if (pW > 0 && Math.abs(pW - cW) > 5) {
+        rebuildChart(canvas);
+      }
+    });
+  }, 800);
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', hydrateAll);
   } else {
