@@ -317,27 +317,70 @@
         console.error('[cyntora] failed to hydrate chart', c.id, e);
       }
     });
+    attachChartObservers();
   }
 
-  // Force every chart to re-measure when the viewport changes size. Chart.js
-  // v4's `responsive:true` SHOULD do this via its internal ResizeObserver,
-  // but in practice the donut + side-legend layout sometimes doesn't pick
-  // up the new column width when a CSS grid switches breakpoints (3-col →
-  // 2-col → 1-col). The user reported needing a hard-refresh to make charts
-  // reflow after resize — this listener removes that.
-  var resizeTimer = null;
-  function resizeAllCharts() {
-    Object.keys(Chart.instances || {}).forEach(function (id) {
-      var c = Chart.instances[id];
-      if (c && typeof c.resize === 'function') {
-        try { c.resize(); } catch (e) { /* ignore */ }
+  // Robust responsive resize. Chart.js v4's `responsive:true` only listens
+  // to WINDOW resize, not container resize, and when a CSS grid switches
+  // breakpoints (e.g. 3-col → 2-col → 1-col) the chart's parent width can
+  // change while window dims do too — but the order in which Chart.js
+  // measures vs the layout reflow isn't guaranteed. Result: user has to
+  // hard-refresh after resizing the window to get charts to redraw.
+  //
+  // Fix: attach a ResizeObserver to every .chart-wrap (the actual canvas
+  // parent) AND a window resize listener as a belt-and-braces fallback.
+  // Both schedule a single rAF tick to coalesce many resize events into
+  // one re-measure pass.
+  var pending = false;
+  function resizeChartInside(wrap) {
+    var canvas = wrap.querySelector('canvas[data-cyntora]');
+    if (!canvas) return;
+    var chart = (typeof Chart.getChart === 'function')
+      ? Chart.getChart(canvas)
+      : null;
+    if (!chart && Chart.instances) {
+      // v3 fallback — Chart.instances keyed by canvas-id-or-numeric-id
+      for (var k in Chart.instances) {
+        var c = Chart.instances[k];
+        if (c && c.canvas === canvas) { chart = c; break; }
       }
+    }
+    if (chart && typeof chart.resize === 'function') {
+      try { chart.resize(); } catch (e) { /* ignore */ }
+    }
+  }
+  function resizeAllCharts() {
+    pending = false;
+    document.querySelectorAll('.chart-wrap, .chart-wrap--short').forEach(resizeChartInside);
+  }
+  function scheduleResize() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(resizeAllCharts);
+  }
+
+  var observedSet = new WeakSet();
+  function attachChartObservers() {
+    if (typeof ResizeObserver !== 'function') return;
+    document.querySelectorAll('.chart-wrap, .chart-wrap--short').forEach(function (wrap) {
+      if (observedSet.has(wrap)) return;
+      observedSet.add(wrap);
+      var ro = new ResizeObserver(function () {
+        // The wrap itself reported a size change — re-fit the chart inside it.
+        scheduleResize();
+      });
+      ro.observe(wrap);
     });
   }
-  window.addEventListener('resize', function () {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(resizeAllCharts, 120);
-  });
+
+  window.addEventListener('resize', scheduleResize);
+
+  // Font-loading completion can also shift layout dimensions slightly. After
+  // each font finishes loading, force one final resize so the chart's grid
+  // and label widths match the post-font measurements.
+  if (document.fonts && typeof document.fonts.ready !== 'undefined') {
+    document.fonts.ready.then(function () { scheduleResize(); });
+  }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', hydrateAll);
