@@ -301,6 +301,16 @@ section.page--dark .eyebrow { color: var(--ink-muted-dark); }
   .card-grid:not(.card-grid--asym):not(.card-grid--3) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  /* HOWEVER — when a .card-grid contains .chart-card children (donut +
+     legend, or chart + chart), cap at 2 columns instead. Three columns
+     squeezes each chart-card to ~370px which leaves the donut-row
+     (1fr 1fr internal grid) with ~150px per side — the legend then wraps
+     to one character per line and visually overflows into the neighbour
+     card. Two columns gives each card ~570px and the donut+legend each
+     get ~270px which fits real text. */
+  .card-grid:has(.chart-card):not(.card-grid--asym):not(.card-grid--3) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .card--icon { display: none; }
