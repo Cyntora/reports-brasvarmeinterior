@@ -348,12 +348,17 @@ section.page--dark .card__value { color: var(--ink-on-dark); }
 
 /* ──────────────────────────── Charts ──────────────────────────── */
 .chart-card {
-  background: var(--bg-cream-soft);
+  /* Transparent so the chart-card visually matches surrounding KPI cards
+     (which are background-less). Prior cream-soft fill made charts look
+     boxed in while the rest of the section was flat — especially the GSC
+     Impressions chart sitting between flat KPI cards above and a flat
+     keywords table below. A 1px border still defines the card edge. */
+  background: transparent;
   border: 1px solid var(--border);
   padding: 22px 24px;
 }
 section.page--dark .chart-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
   border-color: var(--border-dark);
 }
 .chart-card__head {
