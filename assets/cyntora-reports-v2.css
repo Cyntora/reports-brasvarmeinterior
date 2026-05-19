@@ -68,6 +68,11 @@
 
   --font-display: "Guau", "Playfair Display", Georgia, serif;
   --font-body: "TT Hoves Pro Trial", "Montserrat", "Raleway", "Poppins", -apple-system, system-ui, sans-serif;
+  /* Optional brand-specific cover font (e.g. CM Betong Orbitron). Falls
+     back to --font-display when not set so cover stays consistent with
+     the rest of the report. Used ONLY for .cover h1 / .cover__eyebrow /
+     .cover__kicker — section + chart titles always use --font-display. */
+  --font-cover: var(--font-display);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -213,6 +218,7 @@ section.page--dark .eyebrow { color: var(--ink-muted-dark); }
   opacity: 0.5;
 }
 .cover h1 {
+  font-family: var(--font-cover);
   color: var(--ink-on-dark);
   font-size: clamp(36px, 8vw, 112px);
   font-weight: 400; line-height: 0.98;
@@ -489,6 +495,44 @@ section.page--dark .data-table td:first-child { color: var(--ink-on-dark); }
 section.page--dark .takeaway,
 section.page--dark .section__takeaway { background: rgba(181, 143, 75, 0.16); color: var(--ink-on-dark); }
 section.page--dark .takeaway__label { color: var(--brass); }
+
+/* Sentiment band — deterministic green/yellow/red color of each
+   "Sammanfattning" box, derived from the section's key_numbers by
+   `derive_section_sentiments()` in insights_generator. Independent of
+   the per-brand `--accent` palette so the semantic meaning reads the
+   same across every report.
+     positive → green   (≥66% of meaningful YoY deltas are positive)
+     neutral  → amber   (flat or mixed — default for sections w/o data)
+     review   → red     (majority negative — flag for attention)
+   Dark sections get a stronger background tint so the band stays
+   legible against the dark band color. */
+.takeaway--positive {
+  border-left-color: #2F8C5F;
+  background: rgba(47, 140, 95, 0.09);
+}
+.takeaway--positive .takeaway__label { color: #2F8C5F; }
+.takeaway--neutral {
+  border-left-color: #C68B17;
+  background: rgba(198, 139, 23, 0.08);
+}
+.takeaway--neutral .takeaway__label { color: #C68B17; }
+.takeaway--review {
+  border-left-color: #C0392B;
+  background: rgba(192, 57, 43, 0.08);
+}
+.takeaway--review .takeaway__label { color: #C0392B; }
+section.page--dark .takeaway--positive {
+  background: rgba(76, 187, 124, 0.22);
+}
+section.page--dark .takeaway--positive .takeaway__label { color: #6EE0A1; }
+section.page--dark .takeaway--neutral {
+  background: rgba(232, 178, 65, 0.22);
+}
+section.page--dark .takeaway--neutral .takeaway__label { color: #F4C57A; }
+section.page--dark .takeaway--review {
+  background: rgba(232, 88, 73, 0.22);
+}
+section.page--dark .takeaway--review .takeaway__label { color: #F08A7E; }
 .unavailable {
   margin-top: 16px;
   padding: 16px 20px;
