@@ -66,8 +66,14 @@
   --accent-soft: rgba(39, 39, 35, 0.06);
   --brass: #B58F4B;       --brass-soft: rgba(181, 143, 75, 0.12);
 
-  --font-display: "Guau", "Playfair Display", Georgia, serif;
-  --font-body: "TT Hoves Pro Trial", "Montserrat", "Raleway", "Poppins", -apple-system, system-ui, sans-serif;
+  /* Per Cyntora design.md (DESIGN_CYNTORA.md): Poppins for display +
+     headlines; TT Hoves Pro Trial as the UI workhorse; Montserrat for
+     long-form. TT Hoves Pro Trial is a paid TypeType font and not
+     served from Google Fonts, so it falls back to Montserrat for
+     readers without a local copy — both ride the same warm-sans
+     personality so the report still reads like Cyntora. */
+  --font-display: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "TT Hoves Pro Trial", "Montserrat", "Trebuchet MS", Arial, sans-serif;
   /* Optional brand-specific cover font (e.g. CM Betong Orbitron). Falls
      back to --font-display when not set so cover stays consistent with
      the rest of the report. Used ONLY for .cover h1 / .cover__eyebrow /
